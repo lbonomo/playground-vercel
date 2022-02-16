@@ -10,9 +10,10 @@ app.get('/', (req, res) => {
     "default-src 'self' 'unsafe-inline' https://vanguard.com.ar/wp-json/show-remote-ip/v1/get-ip;"
   );
 
-  // 
+  //
+  const all = req.headers 
   const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-  const xip = req.headers['x-client-ip']
+  const viewewrIP = req.headers['cloudfront-viewer-address']
   console.log( )
   
   const body = `
@@ -36,11 +37,11 @@ app.get('/', (req, res) => {
       <spam class="title">x-forwarded-for:</spam> ${ip}
     </li>
     <li>
-      <spam class="title">x-client-ip:</spam> ${xip}
+      <spam class="title">cloudfront-viewer-address:</spam> ${viewewrIP}
     </li>
   </ul>
 
-  <textarea>${JSON.stringify(req.headers, null, 2)}</textarea>
+  <textarea>${JSON.stringify(all, null, 2)}</textarea>
   
   <script>
   fetch('https://vanguard.com.ar/wp-json/show-remote-ip/v1/get-ip')
