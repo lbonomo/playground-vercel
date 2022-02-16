@@ -15,7 +15,7 @@ app.get('/', (req, res) => {
   const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
   let viewewrIP = ''
   if ( req.headers['cloudfront-viewer-address'] ) {
-    const viewewrIP = req.headers['cloudfront-viewer-address'].split(':')[0]
+    viewewrIP = req.headers['cloudfront-viewer-address'].split(':')[0]
   }
 
   const body = `
