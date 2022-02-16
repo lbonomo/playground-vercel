@@ -1,0 +1,11 @@
+html {
+    background-color: rgb(213, 233, 240);
+}
+
+ul {
+    width: 400px;
+    margin: 50px auto 0;
+    font-size: 18px;
+    font-family: Courier;
+    list-style-type: none;
+}
