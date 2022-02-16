@@ -13,9 +13,11 @@ app.get('/', (req, res) => {
   //
   const all = req.headers 
   const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-  const viewewrIP = req.headers['cloudfront-viewer-address']
-  console.log( )
-  
+  let viewewrIP = ''
+  if ( req.headers['cloudfront-viewer-address'] ) {
+    const viewewrIP = req.headers['cloudfront-viewer-address'].split(':')[0]
+  }
+
   const body = `
 <!DOCTYPE html>
 <html lang="en">
