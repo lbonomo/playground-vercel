@@ -1,11 +1,25 @@
 html {
     background-color: rgb(213, 233, 240);
+    font-family: Courier;
+    font-size: 18px;
 }
 
 ul {
     width: 400px;
-    margin: 50px auto 0;
-    font-size: 18px;
-    font-family: Courier;
+    margin: 100px auto 50px;
     list-style-type: none;
+}
+
+li spam.title {
+    width: 200px;
+    display: inline-block;
+}
+
+textarea {
+    font-size: 14px;
+    display: block;
+    margin: 0 auto;
+    width: 60%;
+    max-width: 60%;
+    height: 250px;
 }

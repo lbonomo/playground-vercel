@@ -3,9 +3,19 @@ const app = express()
 const path = require('path');
 
 app.get('/', (req, res) => {
-    const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-    const xip = req.headers['x-client-ip']
-    const body = `
+
+  // Enabled query to remote site.
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self' 'unsafe-inline' https://vanguard.com.ar/wp-json/show-remote-ip/v1/get-ip;"
+  );
+
+  // 
+  const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+  const xip = req.headers['x-client-ip']
+  console.log( )
+  
+  const body = `
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -17,11 +27,21 @@ app.get('/', (req, res) => {
     <link rel="stylesheet" href="public/css/style.css">
   </head>
   <body>
+  
   <ul>
-  <li>Your public IP: <spam id="publicIP"></spam></li>
-  <li>Your public IP: ${ip}</li>
-  <li>Your public IP: ${xip}</li>
+    <li>
+      <spam class="title">Your public IP:</spam> <spam id="publicIP"></spam>
+    </li>
+    <li>
+      <spam class="title">x-forwarded-for:</spam> ${ip}
+    </li>
+    <li>
+      <spam class="title">x-client-ip:</spam> ${xip}
+    </li>
   </ul>
+
+  <textarea>${JSON.stringify(req.headers, null, 2)}</textarea>
+  
   <script>
   fetch('https://vanguard.com.ar/wp-json/show-remote-ip/v1/get-ip')
     .then(response => response.json())
@@ -29,13 +49,10 @@ app.get('/', (req, res) => {
       document.getElementById('publicIP').textContent = data
     });
   </script>
+  
   </body>
 </html>
     `
-    res.setHeader(
-      'Content-Security-Policy',
-      "default-src 'self' 'unsafe-inline' https://vanguard.com.ar/wp-json/show-remote-ip/v1/get-ip;"
-    );
     
     res.send(body)
 })
