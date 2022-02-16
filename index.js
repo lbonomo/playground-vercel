@@ -1,14 +1,9 @@
 const express = require('express')
 const app = express()
 
-
-app.use(express.static('public'))
-
-
 app.get('/', (req, res) => {
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-    console.log(`Client IP: ${ip}`)
-    res.send('Hello World!')
+    res.send(`<p>Hello World!</br>Your IP is: ${ip}</p>`)
 })
 
 const port = process.env.PORT || 3000
