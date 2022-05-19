@@ -2,15 +2,9 @@ const express = require('express')
 const app = express()
 const path = require('path');
 
-app.get('/', (req, res) => {
+const home = (req, res) => { 
 
-  // Enabled query to remote site.
-  res.setHeader(
-    'Content-Security-Policy',
-    "default-src 'self' 'unsafe-inline' https://vanguard.com.ar/wp-json/show-remote-ip/v1/get-ip;"
-  );
-
-  //
+  const path = req.route.path
   const all = req.headers 
   const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
   let viewewrIP = ''
@@ -41,6 +35,9 @@ app.get('/', (req, res) => {
     <li>
       <spam class="title">cloudfront-viewer-address:</spam> ${viewewrIP}
     </li>
+    <li>
+      <spam class="title">request.route.path:</spam> ${path}
+    </li>
   </ul>
 
   <textarea>${JSON.stringify(all, null, 2)}</textarea>
@@ -55,9 +52,30 @@ app.get('/', (req, res) => {
   
   </body>
 </html>
-    `
-    
-    res.send(body)
+    ` 
+    return body
+}
+
+app.get('/', (req, res) => {
+  body = home(req)
+  
+  // Enabled query to remote site.
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self' 'unsafe-inline' https://vanguard.com.ar/wp-json/show-remote-ip/v1/get-ip;"
+  );
+  res.send(body)
+})
+
+app.get('/alt1', (req, res) => {
+  body = home(req)
+  
+  // Enabled query to remote site.
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self' 'unsafe-inline' https://vanguard.com.ar/wp-json/show-remote-ip/v1/get-ip;"
+  );
+  res.send(body)
 })
 
 app.use('/public', express.static(path.join(__dirname, 'public'))); //  "public" off of current is root
