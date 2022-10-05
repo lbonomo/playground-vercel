@@ -60,7 +60,6 @@ async function getOptions(isDev) {
   // Scroll back to top
   await page.evaluate((_) => {  window.scrollTo(0, 0); });
   await page.waitForTimeout(1000)
-  logger.log({ level: 'info', message: 'Scroll completed' });
   return null
 }
 
@@ -94,7 +93,7 @@ module.exports = async (req, res) => {
     // await page.$eval( cookie_selector, (form) => form.click() );
 
     // Scroll.
-    // await scroll(page)
+    await scroll(page)
 
     // tell the page to visit the url
     await page.goto(pageToScreenshot);
@@ -102,6 +101,7 @@ module.exports = async (req, res) => {
     // take a screenshot
     const file = await page.screenshot({
       type: "png",
+      fullPage: true,
     });
 
     // close the browser
