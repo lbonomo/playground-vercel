@@ -9,6 +9,6 @@ module.exports = nextConfig
 
 module.exports = {
   env: {
-    ENVIRONMENT: 'local',
+    ENVIRONMENT: process.env.ENVIRONMENT,
   },
 }

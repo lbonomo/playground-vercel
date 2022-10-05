@@ -111,7 +111,6 @@ module.exports = async (req, res) => {
     res.statusCode = 200;
     res.setHeader("Content-Type", `image/png`);
     res.setHeader('Content-disposition', 'attachment; filename=screenshot.png');
-  
 
     // return the file!
     res.end(file);
