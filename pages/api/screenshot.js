@@ -1,10 +1,6 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 // https://nextjs.org/docs/api-routes/introduction
 // https://github.com/alixaxel/chrome-aws-lambda
-
-
-// Shout outs to the following repositories:
-
 // https://github.com/vercel/og-image
 // https://github.com/ireade/netlify-puppeteer-screenshot-demo
 
@@ -26,20 +22,12 @@ const chrome = require("chrome-aws-lambda");
  * your Chrome installation on your operating system.
  */
 
-const exePath =
-  process.platform === "win32"
-    ? "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"
-    : process.platform === "linux"
-    ? "/usr/bin/google-chrome"
-    : "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
-
 async function getOptions(isDev) {
   let options;
   if (isDev) {
     options = {
-      args: [],
-      executablePath: exePath,
-      headless: true,
+      executablePath: "/opt/google/chrome/chrome",
+      headless: 'chrome',
     };
   } else {
     options = {
@@ -51,22 +39,43 @@ async function getOptions(isDev) {
   return options;
 }
 
+
+/**
+ * Scroll.
+ * 
+ * @param page 
+ */
+ async function scroll(page) {
+  const bodyHandle = await page.$('body');
+  const { height } = await bodyHandle.boundingBox();
+      
+  const viewportHeight = page.viewport().height;
+  let viewportIncr = 0;
+  while (viewportIncr < height) {
+      await page.evaluate( (_viewportHeight) => { window.scrollBy(0, _viewportHeight); }, viewportHeight);
+      await page.waitForTimeout(1000)
+      viewportIncr = viewportIncr + viewportHeight;
+  }
+  
+  // Scroll back to top
+  await page.evaluate((_) => {  window.scrollTo(0, 0); });
+  await page.waitForTimeout(1000)
+  logger.log({ level: 'info', message: 'Scroll completed' });
+  return null
+}
+
 module.exports = async (req, res) => {
-  const pageToScreenshot = req.query.page;
+
+  const pageToScreenshot = req.body.url;
 
   // pass in this parameter if you are developing locally
   // to ensure puppeteer picks up your machine installation of
   // Chrome via the configurable options
-  const isDev = req.query.isDev === "true";
+  
+  // TODO - Reemplazar por dotenv
+  const isDev = false;
 
-  try {
-    // check for https for safety!
-    if (!pageToScreenshot.includes("https://")) {
-      res.statusCode = 404;
-      res.json({
-        body: "Sorry, we couldn't screenshot that page. Did you include https://?",
-      });
-    }
+  // try {
 
     // get options for browser
     const options = await getOptions(isDev);
@@ -75,12 +84,17 @@ module.exports = async (req, res) => {
     const browser = await puppeteer.launch(options);
     const page = await browser.newPage();
 
+    page.setDefaultNavigationTimeout(30000);
+
     // set the viewport size
-    await page.setViewport({
-      width: 1920,
-      height: 1080,
-      deviceScaleFactor: 1,
-    });
+    await page.setViewport({ width: 1280, height: 720 });
+     
+    // const cookie_selector = "a#hs-eu-confirmation-button"
+    // await page.waitForSelector(cookie_selector);
+    // await page.$eval( cookie_selector, (form) => form.click() );
+
+    // Scroll.
+    // await scroll(page)
 
     // tell the page to visit the url
     await page.goto(pageToScreenshot);
@@ -98,10 +112,10 @@ module.exports = async (req, res) => {
 
     // return the file!
     res.end(file);
-  } catch (e) {
-    res.statusCode = 500;
-    res.json({
-      body: "Sorry, Something went wrong!",
-    });
-  }
+  // } catch (e) {
+  //   res.statusCode = 500;
+  //   res.json({
+  //     body: "Sorry, Something went wrong!",
+  //   });
+  // }
 };
