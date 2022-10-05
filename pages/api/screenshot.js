@@ -53,13 +53,13 @@ async function getOptions(isDev) {
   let viewportIncr = 0;
   while (viewportIncr < height) {
       await page.evaluate( (_viewportHeight) => { window.scrollBy(0, _viewportHeight); }, viewportHeight);
-      await page.waitForTimeout(1000)
+      // await page.waitForTimeout(1000)
       viewportIncr = viewportIncr + viewportHeight;
   }
   
   // Scroll back to top
   await page.evaluate((_) => {  window.scrollTo(0, 0); });
-  await page.waitForTimeout(1000)
+  // await page.waitForTimeout(1000)
   return null
 }
 
