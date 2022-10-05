@@ -23,7 +23,7 @@ const chrome = require("chrome-aws-lambda");
  */
 
 async function getOptions() {
-  
+  console.log(process.env.ENVIRONMENT)
   let options;
   if ( process.env.ENVIRONMENT === 'local' ) {
     options = {
@@ -54,13 +54,13 @@ async function getOptions() {
   let viewportIncr = 0;
   while (viewportIncr < height) {
       await page.evaluate( (_viewportHeight) => { window.scrollBy(0, _viewportHeight); }, viewportHeight);
-      // await page.waitForTimeout(100)
+      await page.waitForTimeout(100)
       viewportIncr = viewportIncr + viewportHeight;
   }
   
   // Scroll back to top
   await page.evaluate((_) => {  window.scrollTo(0, 0); });
-  // await page.waitForTimeout(500)
+  await page.waitForTimeout(1000)
 }
 
 module.exports = async (req, res) => {
