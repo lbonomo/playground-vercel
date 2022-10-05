@@ -22,9 +22,10 @@ const chrome = require("chrome-aws-lambda");
  * your Chrome installation on your operating system.
  */
 
-async function getOptions(isDev) {
+async function getOptions() {
+
   let options;
-  if (isDev) {
+  if ( process.env.ENVIRONMENT === 'local' ) {
     options = {
       executablePath: "/opt/google/chrome/chrome",
       headless: 'chrome',
@@ -71,13 +72,10 @@ module.exports = async (req, res) => {
   // to ensure puppeteer picks up your machine installation of
   // Chrome via the configurable options
   
-  // TODO - Reemplazar por dotenv
-  const isDev = false;
-
   // try {
 
     // get options for browser
-    const options = await getOptions(isDev);
+    const options = await getOptions();
 
     // launch a new headless browser with dev / prod options
     const browser = await puppeteer.launch(options);
