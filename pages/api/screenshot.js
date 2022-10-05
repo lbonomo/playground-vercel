@@ -68,6 +68,8 @@ module.exports = async (req, res) => {
 
   const pageToScreenshot = req.body.url;
 
+
+
   // pass in this parameter if you are developing locally
   // to ensure puppeteer picks up your machine installation of
   // Chrome via the configurable options
@@ -84,17 +86,21 @@ module.exports = async (req, res) => {
     page.setDefaultNavigationTimeout(30000);
 
     // set the viewport size
+
     await page.setViewport({ width: 1280, height: 720 });
-     
-    // const cookie_selector = "a#hs-eu-confirmation-button"
-    // await page.waitForSelector(cookie_selector);
-    // await page.$eval( cookie_selector, (form) => form.click() );
+
+    // tell the page to visit the url
+    await page.goto(pageToScreenshot)
+
+    if ( req.body.selector ) {
+      // await page.waitForSelector(req.body.selector);
+      // await page.waitForNavigation(waitOptions),
+      await page.click(req.body.selector)
+      // await page.$eval( cookie_selector, (form) => form.click() );
+    }
 
     // Scroll.
     await scroll(page)
-
-    // tell the page to visit the url
-    await page.goto(pageToScreenshot);
 
     // take a screenshot
     const file = await page.screenshot({

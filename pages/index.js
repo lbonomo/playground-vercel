@@ -20,7 +20,11 @@ export default function Home() {
           <form className={styles.form } action='/api/screenshot' method='post'>
             <div className={styles.field}>
               <label>URL</label>
-              <input className={styles.inputText} type='text' defaultValue="https://bymason.com" name='url'/>              
+              <input className={styles.inputText} type='text' name='url'/>
+            </div>
+            <div className={styles.field}>
+              <label>Cookie selector</label>
+              <input className={styles.inputText} type='text' name='selector'/>
             </div>
             <div className={styles.field}>
               <input className={styles.inputSubmit} type='submit' defaultValue='Make screenshot'/>
