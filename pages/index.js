@@ -17,7 +17,7 @@ export default function Home() {
         </h1>
 
         <div className={styles.grid}>
-          <form className={styles.form } action='/api/screenshot' method='post'>
+          <form className={styles.form } action='/api/getBase' method='post'>
             <div className={styles.field}>
               <label>URL</label>
               <input className={styles.inputText} type='text' name='url'/>
