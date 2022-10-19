@@ -1,7 +1,7 @@
 import { VercelRequest, VercelResponse } from '@vercel/node'
 import { S3Client, GetObjectCommand, PutObjectCommand, ListObjectsCommand } from "@aws-sdk/client-s3"
 import { streamToBuffer, makeKey } from '../../libs/utils';
-
+import Jimp from 'jimp';
 
 /**
  * Recover base images from bucket S3.
@@ -26,15 +26,24 @@ export default async (req: VercelRequest, res: VercelResponse) => {
         
         res.statusCode = 200
         res.setHeader("Content-Type", `image/png`)
-        res.setHeader('Content-disposition', 'attachment; filename=screenshot.png')
+        res.setHeader('Content-disposition', 'attachment; filename=base.png')
         res.end(bufferImage)
     } catch (err:any) {
+        // If don't exist base image make a blank image.
         if ( err.Code === 'NoSuchKey') {
-            const data = {
-                'status': "error",
-                'description': "Don't exist base image in Amazon S3"
-            }
-            res.end(JSON.stringify(data))
+            
+            // width: 1280, height: 720 the same size of screenshot.
+            const blankImage = new Jimp( 1280, 720, '#f96e62' )
+
+            var bufferBlank:any = null
+            blankImage.getBuffer("image/png", (err, b) => bufferBlank = b );
+          
+            res.statusCode = 200;
+            res.setHeader("Content-Type", `image/png`);
+            res.setHeader('Content-disposition', 'attachment; filename=blank.png');
+        
+            // return the file!
+            res.end(bufferBlank);
         } else {
             const data = {
                 'status': "error",
