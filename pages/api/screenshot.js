@@ -12,6 +12,9 @@
 const puppeteer = require("puppeteer-core");
 const chrome = require("chrome-aws-lambda");
 
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3"
+import { streamToBuffer, makeKey } from '../../libs/utils';
+
 /** The code below determines the executable location for Chrome to
  * start up and take the screenshot when running a local development environment.
  *
@@ -23,7 +26,6 @@ const chrome = require("chrome-aws-lambda");
  */
 
 async function getOptions() {
-  console.log(process.env.ENVIRONMENT)
   let options;
   if ( process.env.ENVIRONMENT === 'local' ) {
     options = {
@@ -63,13 +65,33 @@ async function getOptions() {
   await page.waitForTimeout(1000)
 }
 
+/**
+ * Save buffer in bucket.
+ * 
+ * @param client 
+ * @param buffer 
+ * @returns 
+ */
+export async function bufferToBucket(client, buffer, key) {
+
+  const s3_bucket = process.env.S3_Bucket
+
+  const uploadParams = {
+    Bucket: s3_bucket,
+    Key: key,
+    Body: buffer
+  }
+  try {
+    await client.send(new PutObjectCommand( uploadParams ));
+    return true    
+  } catch (err) {
+    console.log(err)
+    return false
+  }
+}
 module.exports = async (req, res) => {
 
   const pageToScreenshot = req.body.url;
-
-  // pass in this parameter if you are developing locally
-  // to ensure puppeteer picks up your machine installation of
-  // Chrome via the configurable options
   
   // try {
 
@@ -90,10 +112,7 @@ module.exports = async (req, res) => {
     await page.goto(pageToScreenshot)
 
     if ( req.body.selector ) {
-      // await page.waitForSelector(req.body.selector);
-      // await page.waitForNavigation(waitOptions),
       await page.click(req.body.selector)
-      // await page.$eval( cookie_selector, (form) => form.click() );
     }
 
     // Scroll.
@@ -105,15 +124,27 @@ module.exports = async (req, res) => {
       fullPage: true,
     });
 
-    // close the browser
-    await browser.close();
 
+    // Save screenshot
+    const key = makeKey(req.body.url, 'snapshot')
+    const s3_region = process.env.S3_region
+    const s3_credentials = {
+        accessKeyId: process.env.S3_AccessKeyId,
+        secretAccessKey: process.env.S3_SecretAccessKey,
+    };
+
+    const s3_Client = new S3Client({ region: s3_region, credentials: s3_credentials });    
+    await bufferToBucket(s3_Client, file, key)
     res.statusCode = 200;
     res.setHeader("Content-Type", `image/png`);
     res.setHeader('Content-disposition', 'attachment; filename=screenshot.png');
 
     // return the file!
     res.end(file);
+
+    // close the browser
+    await browser.close();
+
   // } catch (e) {
   //   res.statusCode = 500;
   //   res.json({

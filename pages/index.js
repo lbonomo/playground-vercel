@@ -9,10 +9,7 @@ async function getBase() {
   return "base"
 }
 
-async function getScreenshot() {
-  console.log("Get Screenshot")
-  return ""
-}
+
 
 async function getCompare() {
 
@@ -73,6 +70,23 @@ export default function Home() {
   const [base, setBase] = useState(null);
   const [screenshot, setScreenshot] = useState(null);
   const [compare, setCompare] = useState(null);
+
+  // Get screenshot
+  async function getScreenshot() {
+    console.log("Get Screenshot")
+    let apiURL = "api/screenshot"
+    const data = {
+      'url': url,
+      'selector': cookieSelector
+    }    
+    await fetch(apiURL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', },
+      body: data
+    })
+    
+    return ""
+  }
 
   // Main function.
   async function handleClick() {

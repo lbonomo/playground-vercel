@@ -26,10 +26,21 @@ import urlSlug from 'url-slug'
  * @param url string
  * @returns string
  */
-export function makeKey(uri:string) {
+export function makeKey(uri:string, category:'base'|'snapshot') {
     const uriArray = new URL(uri)
-    const slug = url2str(uri)    
-    return `${uriArray.host}/base/${slug}.png`
+    const slug = url2str(uri)
+    let path:string
+    switch (category) {
+      case 'base':
+        path = `${uriArray.host}/base/${slug}.png`
+        break;
+      case 'snapshot':
+        path = `${uriArray.host}/snapshot/${slug}.png`
+        break;
+      default:
+        path = `${uriArray.host}/base/${slug}.png`
+    }
+    return path
 }
 
 /**

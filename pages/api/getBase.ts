@@ -7,7 +7,7 @@ import Jimp from 'jimp';
  * Recover base images from bucket S3.
  */
 export default async (req: VercelRequest, res: VercelResponse) => {
-    const key = makeKey(req.body.url)
+    const key = makeKey(req.body.url, 'base')
     const s3_region = process.env.S3_region
     const s3_credentials = {
         accessKeyId: process.env.S3_AccessKeyId,
