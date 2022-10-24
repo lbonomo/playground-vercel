@@ -1,10 +1,12 @@
 import Head from 'next/head'
 import Image from 'next/image'
 import styles from '../styles/Home.module.css'
+import { useState, useRef } from "react";
+
 
 async function getBase() {
   console.log("Get Base")
-  return ""
+  return "base"
 }
 
 async function getScreenshot() {
@@ -13,33 +15,74 @@ async function getScreenshot() {
 }
 
 async function getCompare() {
+
+  // https://developer.mozilla.org/en-US/docs/Web/API/URL/createObjectURL
+  
+
   console.log("Compare")
   let url = "api/compare"
- 
+  
   const data = new URLSearchParams();
   data.append('url','https://bymason.com')
-
-  const response = await fetch(url, {
-    method: 'POST',
-    // mode: 'same-origin', // no-cors, *cors, same-origin
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-    body: JSON.stringify(data) // body data type must match "Content-Type" header
-  });
-
-  return response
-
+  
+  const baseURL = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'multipart/form-data', },
+      body: JSON.stringify(data)
+    })  .then((response) => {
+      const reader = response.body.getReader();
+      return new ReadableStream({
+        start(controller) {
+          return pump();
+          function pump() {
+            return reader.read().then(({ done, value }) => {
+              // When no more data needs to be consumed, close the stream
+              if (done) {
+                controller.close();
+                return;
+              }
+              // Enqueue the next data chunk into our target stream
+              controller.enqueue(value);
+              return pump();
+            });
+          }
+        }
+      })
+    })
+    // Create a new response out of the stream
+    .then((stream) => new Response(stream))
+    // Create an object URL for the response
+    .then((response) => response.blob())
+    .then( blob => URL.createObjectURL(blob) )
+    // Update image
+    .then((url) => { return url })
+    .catch((err) => console.error(err));
+    
+    return baseURL
 }
 
-async function handleClick() {
-  const base = await getBase()
-  const screenshot = await getScreenshot()
 
-  const compare = await getCompare()
-}
 
 export default function Home() {
+
+  // Props.
+  const [url, setURL] = useState('');
+  const [cookieSelector, setCookieSelector] = useState('');
+  
+  // Buffers images.
+  const [base, setBase] = useState(null);
+  const [screenshot, setScreenshot] = useState(null);
+  const [compare, setCompare] = useState(null);
+
+  // Main function.
+  async function handleClick() {
+    setBase(await getBase())
+    setScreenshot( await getScreenshot())
+    let x = await getCompare()
+    console.log(x)
+    setCompare(x)
+  }
+
   return (
     <div className={styles.container}>
       <Head>
@@ -57,16 +100,25 @@ export default function Home() {
           <div className={styles.form }>
 
             <div className={styles.field}>
-              <label>URL</label>
-              <input className={styles.inputText} type='text' name='url'/>
+              <label>URL</label>              
+              <input 
+                className={styles.inputText} type='url' name='url'
+                onChange={(event) => {setURL(event.target.value)}} 
+                />
             </div>
             <div className={styles.field}>
               <label>Cookie selector</label>
-              <input className={styles.inputText} type='text' name='selector'/>
+              <input 
+                className={styles.inputText} type='text' name='selector'
+                onChange={(event) => {setCookieSelector(event.target.value)}} 
+              />
             </div>
             <div className={styles.field}>
-              <input className={styles.inputSubmit} type='button' defaultValue='Make screenshot' onClick={ handleClick }/>
+              <input className={styles.inputSubmit} type='button' defaultValue='Compare' onClick={ handleClick }/>
             </div>
+          </div>
+          <div className="pt-2">
+            <img src={compare} />            
           </div>
         </div>
       </main>

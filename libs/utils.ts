@@ -32,8 +32,6 @@ export function makeKey(uri:string) {
     return `${uriArray.host}/base/${slug}.png`
 }
 
-
-
 /**
  * Convert URL to string
  * 
