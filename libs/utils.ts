@@ -62,7 +62,6 @@ export function url2str(url:string) {
  * @returns {{ diffBuffer, number }}
  */
  export async function compareBuffer(bufferBase:Buffer, bufferCurrent:Buffer) {
-  console.log("Making diff")
   
   const image1 = await Jimp.read(bufferBase);
   const image2 = await Jimp.read(bufferCurrent);

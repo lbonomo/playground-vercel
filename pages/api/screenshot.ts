@@ -138,9 +138,7 @@ module.exports = async (req, res) => {
     
     // Make diff
     const {diffBuffer, diffPercent} = await compareBuffer(baseBuffer, snapshotBuffer)
-
-    console.log("We have a diff...")
-    
+   
     // Storage diff
     const diffS3URL = await bufferToBucket(s3_Client, diffBuffer ,makeKey(pageToScreenshot, testTime, 'diff'))
     
@@ -153,13 +151,13 @@ module.exports = async (req, res) => {
     res.setHeader('Content-disposition', 'attachment; filename=screenshot.png');
     res.end(diffBuffer);
     
+    // responder directamente la URL de S3.
     const s3Data = {
         'snapshot': snapshotS3URL,
         'diff': diffS3URL
     }
     console.log(s3Data)
 
-    // responder directamente la URL de S3.
     // res.statusCode = 200;
     // res.json({
     //   'snapshot': snapshotS3URL,

@@ -4,12 +4,6 @@ import styles from '../styles/Home.module.css'
 import { useState } from "react";
 
 
-async function getBase() {
-  console.log("Get Base")
-  return "base"
-}
-
-
 export default function Home() {
 
   // Props.
@@ -19,7 +13,7 @@ export default function Home() {
   // Buffers images.
   const [screenshot, setScreenshot] = useState(null);
   const [cursor, setCursor ] = useState('default');
-  const [button, setButton ] = useState('true');
+  const [disableButton, setDisableButton ] = useState(true);
 
   // Get screenshot
   async function getScreenshot() {
@@ -67,9 +61,9 @@ export default function Home() {
 
   // Main function.
   async function handleClick() {
-    setButton('true')
+    setDisableButton(true)
     setScreenshot( await getScreenshot() )
-    setButton('false')
+    setDisableButton(false)
   }
 
   return (
@@ -94,7 +88,7 @@ export default function Home() {
                 style={{ cursor: cursor }}
                 className={styles.inputText} type='url' name='url'
                 onChange={(event) => {
-                  setButton(false)
+                  setDisableButton(false)
                   setURL(event.target.value)
                 }} 
                 />
@@ -114,12 +108,14 @@ export default function Home() {
                 type='button'
                 defaultValue='Compare'
                 onClick={ handleClick } 
-                disabled={ button }
+                disabled={ disableButton }
               />
             </div>
           </div>
           <div className="pt-2">
-            <img className={styles.img} src={screenshot} />            
+            <picture>
+              <img className={styles.img} src={screenshot} alt="Diff image"/>
+            </picture>
           </div>
         </div>
       </main>
