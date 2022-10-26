@@ -1,4 +1,5 @@
 import urlSlug from 'url-slug'
+import { PutObjectCommand } from "@aws-sdk/client-s3"
 
 /**
  * SteamToBuffer.
@@ -13,13 +14,6 @@ import urlSlug from 'url-slug'
    stream.on("error", reject);
    stream.on("end", () => resolve(Buffer.concat(chunks)));
  });
-
-
-
- /**
- * Recover images from bucket.
- */
-
 
 /**
  * 
@@ -53,4 +47,29 @@ export function url2str(url:string) {
     const uri = new URL(url)
     const slug = (uri.pathname === '/') ? 'root' : urlSlug(`${uri.pathname}-${uri.search}`)
     return slug
+}
+
+/**
+ * Save buffer in bucket.
+ * 
+ * @param client 
+ * @param buffer 
+ * @returns 
+ */
+ export async function bufferToBucket(client, buffer, key) {
+
+  const s3_bucket = process.env.S3_Bucket
+
+  const uploadParams = {
+    Bucket: s3_bucket,
+    Key: key,
+    Body: buffer
+  }
+  try {
+    await client.send(new PutObjectCommand( uploadParams ));
+    return true    
+  } catch (err) {
+    console.log(err)
+    return false
+  }
 }

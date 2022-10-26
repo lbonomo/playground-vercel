@@ -10,23 +10,34 @@ async function getBase() {
 }
 
 
+export default function Home() {
 
-async function getCompare() {
+  // Props.
+  const [url, setURL] = useState('');
+  const [cookieSelector, setCookieSelector] = useState(null);
+  
+  // Buffers images.
+  const [base, setBase] = useState(null);
+  const [screenshot, setScreenshot] = useState(null);
+  const [compare, setCompare] = useState(null);
 
-  // https://developer.mozilla.org/en-US/docs/Web/API/URL/createObjectURL
-  
-
-  console.log("Compare")
-  let url = "api/compare"
-  
-  const data = new URLSearchParams();
-  data.append('url','https://bymason.com')
-  
-  const baseURL = await fetch(url, {
+  // Get screenshot
+  async function getScreenshot() {
+    console.log("Get Screenshot")
+    let apiURL = "api/screenshot"
+    const data = {
+      'url': url
+    }
+    if ( cookieSelector ) {
+      data['selector'] = cookieSelector
+    }
+    
+    // Get image.
+    const snapshotURL = await fetch(apiURL, {
       method: 'POST',
-      headers: { 'Content-Type': 'multipart/form-data', },
+      headers: { 'Content-Type': 'application/json', },
       body: JSON.stringify(data)
-    })  .then((response) => {
+    }).then((response) => {
       const reader = response.body.getReader();
       return new ReadableStream({
         start(controller) {
@@ -45,56 +56,18 @@ async function getCompare() {
           }
         }
       })
-    })
-    // Create a new response out of the stream
-    .then((stream) => new Response(stream))
-    // Create an object URL for the response
-    .then((response) => response.blob())
+    }).then((stream) => new Response(stream))     // Create a new response out of the stream
+    .then((response) => response.blob())          // Create an object URL for the response
     .then( blob => URL.createObjectURL(blob) )
-    // Update image
     .then((url) => { return url })
     .catch((err) => console.error(err));
     
-    return baseURL
-}
-
-
-
-export default function Home() {
-
-  // Props.
-  const [url, setURL] = useState('');
-  const [cookieSelector, setCookieSelector] = useState('');
-  
-  // Buffers images.
-  const [base, setBase] = useState(null);
-  const [screenshot, setScreenshot] = useState(null);
-  const [compare, setCompare] = useState(null);
-
-  // Get screenshot
-  async function getScreenshot() {
-    console.log("Get Screenshot")
-    let apiURL = "api/screenshot"
-    const data = {
-      'url': url,
-      'selector': cookieSelector
-    }    
-    await fetch(apiURL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', },
-      body: data
-    })
-    
-    return ""
+    return snapshotURL
   }
 
   // Main function.
   async function handleClick() {
-    setBase(await getBase())
-    setScreenshot( await getScreenshot())
-    let x = await getCompare()
-    console.log(x)
-    setCompare(x)
+    setScreenshot( await getScreenshot() )
   }
 
   return (
@@ -132,7 +105,7 @@ export default function Home() {
             </div>
           </div>
           <div className="pt-2">
-            <img src={compare} />            
+            <img className={styles.img} src={screenshot} />            
           </div>
         </div>
       </main>

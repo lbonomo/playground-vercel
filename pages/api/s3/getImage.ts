@@ -1,6 +1,6 @@
 import { VercelRequest, VercelResponse } from '@vercel/node'
 import { S3Client, GetObjectCommand, PutObjectCommand, ListObjectsCommand } from "@aws-sdk/client-s3"
-import { streamToBuffer, makeKey } from '../../libs/utils';
+import { streamToBuffer, makeKey } from '../../../libs/utils';
 import Jimp from 'jimp';
 
 /**

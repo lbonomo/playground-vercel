@@ -12,8 +12,8 @@
 const puppeteer = require("puppeteer-core");
 const chrome = require("chrome-aws-lambda");
 
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3"
-import { streamToBuffer, makeKey } from '../../libs/utils';
+import { S3Client } from "@aws-sdk/client-s3"
+import { bufferToBucket, makeKey } from '../../libs/utils';
 
 /** The code below determines the executable location for Chrome to
  * start up and take the screenshot when running a local development environment.
@@ -65,30 +65,8 @@ async function getOptions() {
   await page.waitForTimeout(1000)
 }
 
-/**
- * Save buffer in bucket.
- * 
- * @param client 
- * @param buffer 
- * @returns 
- */
-export async function bufferToBucket(client, buffer, key) {
 
-  const s3_bucket = process.env.S3_Bucket
 
-  const uploadParams = {
-    Bucket: s3_bucket,
-    Key: key,
-    Body: buffer
-  }
-  try {
-    await client.send(new PutObjectCommand( uploadParams ));
-    return true    
-  } catch (err) {
-    console.log(err)
-    return false
-  }
-}
 module.exports = async (req, res) => {
 
   const pageToScreenshot = req.body.url;
@@ -133,8 +111,6 @@ module.exports = async (req, res) => {
         secretAccessKey: process.env.S3_SecretAccessKey,
     };
 
-    const s3_Client = new S3Client({ region: s3_region, credentials: s3_credentials });    
-    await bufferToBucket(s3_Client, file, key)
     res.statusCode = 200;
     res.setHeader("Content-Type", `image/png`);
     res.setHeader('Content-disposition', 'attachment; filename=screenshot.png');
@@ -142,6 +118,8 @@ module.exports = async (req, res) => {
     // return the file!
     res.end(file);
 
+    const s3_Client = new S3Client({ region: s3_region, credentials: s3_credentials });    
+    await bufferToBucket(s3_Client, file, key)
     // close the browser
     await browser.close();
 
