@@ -12,8 +12,8 @@
 const puppeteer = require("puppeteer-core");
 const chrome = require("chrome-aws-lambda");
 
-import { S3Client } from "@aws-sdk/client-s3"
-import { bufferToBucket, makeKey } from '../../libs/utils';
+import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3"
+import { bufferToBucket, makeKey, streamToBuffer, compareBuffer } from '../../libs/utils';
 
 /** The code below determines the executable location for Chrome to
  * start up and take the screenshot when running a local development environment.
@@ -69,8 +69,9 @@ async function getOptions() {
 
 module.exports = async (req, res) => {
 
-  const pageToScreenshot = req.body.url;
-  
+  const pageToScreenshot = req.body.url
+  const testTime = Date.now().toString()
+
   // try {
 
     // get options for browser
@@ -96,32 +97,74 @@ module.exports = async (req, res) => {
     // Scroll.
     await scroll(page)
 
-    // take a screenshot
-    const file = await page.screenshot({
+    // Take a screenshot
+    const snapshotBuffer = await page.screenshot({
       type: "png",
       fullPage: true,
     });
 
 
-    // Save screenshot
-    const key = makeKey(req.body.url, 'snapshot')
+    // AWS common config
     const s3_region = process.env.S3_region
+    const s3_bucket = process.env.S3_Bucket
     const s3_credentials = {
-        accessKeyId: process.env.S3_AccessKeyId,
-        secretAccessKey: process.env.S3_SecretAccessKey,
+      accessKeyId: process.env.S3_AccessKeyId,
+      secretAccessKey: process.env.S3_SecretAccessKey,
+    };
+    const s3_Client = new S3Client({ region: s3_region, credentials: s3_credentials });
+    
+    // Save screenshot.
+    const snapshotKey = makeKey(pageToScreenshot, testTime ,'snapshot')
+    const snapshotS3URL = await bufferToBucket(s3_Client, snapshotBuffer, snapshotKey)
+
+
+    // Get base.
+    const baseKey = makeKey(pageToScreenshot, null ,'base')
+    const baseParams = {
+      Bucket: s3_bucket,
+      Key: baseKey,
     };
 
+    let baseBuffer
+    try {
+      const baseData = await s3_Client.send(new GetObjectCommand(baseParams))
+      baseBuffer = await streamToBuffer(baseData.Body)
+    } catch {
+      baseBuffer = snapshotBuffer
+      // Save current snapshot as base
+      await bufferToBucket(s3_Client, snapshotBuffer, baseKey)
+    }
+
+    
+    // Make diff
+    const {diffBuffer, diffPercent} = await compareBuffer(baseBuffer, snapshotBuffer)
+
+    console.log("We have a diff...")
+    
+    // Storage diff
+    const diffS3URL = await bufferToBucket(s3_Client, diffBuffer ,makeKey(pageToScreenshot, testTime, 'diff'))
+    
+    // close the browser
+    await browser.close();
+
+    // // return the file!
     res.statusCode = 200;
     res.setHeader("Content-Type", `image/png`);
     res.setHeader('Content-disposition', 'attachment; filename=screenshot.png');
+    res.end(diffBuffer);
+    
+    const s3Data = {
+        'snapshot': snapshotS3URL,
+        'diff': diffS3URL
+    }
+    console.log(s3Data)
 
-    // return the file!
-    res.end(file);
-
-    const s3_Client = new S3Client({ region: s3_region, credentials: s3_credentials });    
-    await bufferToBucket(s3_Client, file, key)
-    // close the browser
-    await browser.close();
+    // responder directamente la URL de S3.
+    // res.statusCode = 200;
+    // res.json({
+    //   'snapshot': snapshotS3URL,
+    //   'diff': diffS3URL
+    // })
 
   // } catch (e) {
   //   res.statusCode = 500;

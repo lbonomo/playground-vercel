@@ -1,7 +1,7 @@
 import Head from 'next/head'
 import Image from 'next/image'
 import styles from '../styles/Home.module.css'
-import { useState, useRef } from "react";
+import { useState } from "react";
 
 
 async function getBase() {
@@ -17,17 +17,17 @@ export default function Home() {
   const [cookieSelector, setCookieSelector] = useState(null);
   
   // Buffers images.
-  const [base, setBase] = useState(null);
   const [screenshot, setScreenshot] = useState(null);
-  const [compare, setCompare] = useState(null);
+  const [cursor, setCursor ] = useState('default');
+  const [button, setButton ] = useState('true');
 
   // Get screenshot
   async function getScreenshot() {
-    console.log("Get Screenshot")
+
+    setCursor('wait')
+
     let apiURL = "api/screenshot"
-    const data = {
-      'url': url
-    }
+    const data = { 'url': url }
     if ( cookieSelector ) {
       data['selector'] = cookieSelector
     }
@@ -61,17 +61,19 @@ export default function Home() {
     .then( blob => URL.createObjectURL(blob) )
     .then((url) => { return url })
     .catch((err) => console.error(err));
-    
+    setCursor('default')
     return snapshotURL
   }
 
   // Main function.
   async function handleClick() {
+    setButton('true')
     setScreenshot( await getScreenshot() )
+    setButton('false')
   }
 
   return (
-    <div className={styles.container}>
+    <div className={styles.container} style={{ cursor: cursor }}>
       <Head>
         <title>Puppeteer serverless function test</title>
         <meta name="description" content="Puppeteer serverless function test" />
@@ -88,20 +90,32 @@ export default function Home() {
 
             <div className={styles.field}>
               <label>URL</label>              
-              <input 
+              <input
+                style={{ cursor: cursor }}
                 className={styles.inputText} type='url' name='url'
-                onChange={(event) => {setURL(event.target.value)}} 
+                onChange={(event) => {
+                  setButton(false)
+                  setURL(event.target.value)
+                }} 
                 />
             </div>
             <div className={styles.field}>
               <label>Cookie selector</label>
               <input 
+                style={{ cursor: cursor }}
                 className={styles.inputText} type='text' name='selector'
                 onChange={(event) => {setCookieSelector(event.target.value)}} 
               />
             </div>
             <div className={styles.field}>
-              <input className={styles.inputSubmit} type='button' defaultValue='Compare' onClick={ handleClick }/>
+              <input 
+                style={{ cursor: cursor }}
+                className={styles.inputSubmit}
+                type='button'
+                defaultValue='Compare'
+                onClick={ handleClick } 
+                disabled={ button }
+              />
             </div>
           </div>
           <div className="pt-2">
